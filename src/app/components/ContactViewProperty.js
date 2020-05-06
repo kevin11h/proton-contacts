@@ -16,7 +16,7 @@ import { c } from 'ttag';
 import { parseISO, isValid, format } from 'date-fns';
 
 import { dateLocale } from 'proton-shared/lib/i18n';
-import { clearType, getType, formatAdr } from '../helpers/property';
+import { clearType, getType, formatAdr } from 'proton-shared/lib/contacts/property';
 import { getTypeLabels } from '../helpers/types';
 
 import ContactGroupIcon from './ContactGroupIcon';
@@ -30,6 +30,7 @@ const ContactViewProperty = ({
     contactID,
     contactEmail,
     contactGroups = [],
+    ownAddresses,
     userKeysList,
     leftBlockWidth = 'w30',
     rightBlockWidth = 'w70'
@@ -90,7 +91,7 @@ const ContactViewProperty = ({
                 if (!contactEmail) {
                     return null;
                 }
-
+                const isOwnAddress = ownAddresses.includes(value);
                 const handleSettings = () => {
                     createModal(
                         <ContactEmailSettingsModal
@@ -114,11 +115,13 @@ const ContactViewProperty = ({
                                 </Tooltip>
                             </ContactGroupDropdown>
                         ) : null}
-                        <ButtonGroup onClick={handleSettings} className="pm-button--for-icon">
-                            <Tooltip title={c('Title').t`Email settings`}>
-                                <Icon name="settings-singular" />
-                            </Tooltip>
-                        </ButtonGroup>
+                        {!isOwnAddress && (
+                            <ButtonGroup onClick={handleSettings} className="pm-button--for-icon">
+                                <Tooltip title={c('Title').t`Email settings`}>
+                                    <Icon name="settings-singular" />
+                                </Tooltip>
+                            </ButtonGroup>
+                        )}
                         <Copy className="pm-button--for-icon pm-group-button" value={value} />
                     </Group>
                 );

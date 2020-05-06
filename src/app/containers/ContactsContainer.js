@@ -8,11 +8,13 @@ import {
     useUser,
     useUserKeys,
     useContactGroups,
+    useAddresses,
     useActiveBreakpoint,
     useModals,
     useToggle,
     ErrorBoundary,
-    GenericError
+    GenericError,
+    useUserSettings
 } from 'react-components';
 import { normalize } from 'proton-shared/lib/helpers/string';
 import { toMap } from 'proton-shared/lib/helpers/object';
@@ -33,16 +35,18 @@ import PrivateLayout from '../content/PrivateLayout';
 const ContactsContainer = ({ location, history }) => {
     const { state: expanded, toggle: onToggleExpand, set: setExpand } = useToggle();
     const { createModal } = useModals();
+    const { isDesktop, isNarrow } = useActiveBreakpoint();
     const [search, updateSearch] = useState('');
     const normalizedSearch = normalize(search);
     const [contactEmails, loadingContactEmails] = useContactEmails();
     const [contacts, loadingContacts] = useContacts();
-    const [contactGroups, loadingContactGroups] = useContactGroups();
-    const [checkedContacts, setCheckedContacts] = useState(Object.create(null));
+    const [contactGroups = [], loadingContactGroups] = useContactGroups();
     const [user] = useUser();
+    const [userSettings, loadingUserSettings] = useUserSettings();
     const [userKeysList, loadingUserKeys] = useUserKeys(user);
+    const [addresses = [], loadingAddresses] = useAddresses();
 
-    const { isDesktop, isNarrow } = useActiveBreakpoint();
+    const [checkedContacts, setCheckedContacts] = useState(Object.create(null));
 
     const contactID = useMemo(() => {
         const [, contactID] = location.pathname.split('/contacts/');
@@ -55,7 +59,7 @@ const ContactsContainer = ({ location, history }) => {
     }, [location.search]);
 
     const { contactGroupName, totalContactsInGroup } = useMemo(() => {
-        if (!contactGroups || !contactGroupID) {
+        if (!contactGroups.length || !contactGroupID) {
             return Object.create(null);
         }
         const contactGroup = contactGroups.find(({ ID }) => ID === contactGroupID);
@@ -63,7 +67,9 @@ const ContactsContainer = ({ location, history }) => {
             contactGroupName: contactGroup.Name,
             totalContactsInGroup: contacts.filter(({ LabelIDs = [] }) => LabelIDs.includes(contactGroupID)).length
         };
-    }, [contacts, contactGroupID]);
+    }, [contacts, contactGroups, contactGroupID]);
+
+    const ownAddresses = useMemo(() => addresses.map(({ Email }) => Email), [addresses]);
 
     const hasChecked = useMemo(() => {
         return Object.keys(checkedContacts).some((key) => checkedContacts[key]);
@@ -180,10 +186,12 @@ const ContactsContainer = ({ location, history }) => {
         createModal(<DeleteModal contactIDs={activeIDs} deleteAll={deleteAll} onDelete={onDelete} />);
     };
 
-    const handleMerge = () => {
+    const handleMerge = (mergeAll = true) => {
+        const contacts = mergeAll ? mergeableContacts : [formattedContacts.filter(({ isChecked }) => isChecked)];
+
         createModal(
             <MergeModal
-                contacts={mergeableContacts}
+                contacts={contacts}
                 contactID={contactID}
                 userKeysList={userKeysList}
                 hasPaidMail={!!hasPaidMail}
@@ -195,7 +203,8 @@ const ContactsContainer = ({ location, history }) => {
         createModal(<ExportModal contactGroupID={contactGroupID} userKeysList={userKeysList} />);
     const handleGroups = () => history.replace('/contacts/settings/groups');
 
-    const isLoading = loadingContactEmails || loadingContacts || loadingContactGroups || loadingUserKeys;
+    const isLoading =
+        loadingContactEmails || loadingContacts || loadingContactGroups || loadingUserKeys || loadingAddresses || loadingUserSettings;
     const contactsLength = contacts ? contacts.length : 0;
     const noHeader = isNarrow && contactID ? '--noHeader' : '';
 
@@ -205,6 +214,7 @@ const ContactsContainer = ({ location, history }) => {
                 contactID={contactID}
                 contactEmails={contactEmailsMap[contactID]}
                 contactGroupsMap={contactGroupsMap}
+                ownAddresses={ownAddresses}
                 userKeysList={userKeysList}
             />
         </ErrorBoundary>
@@ -220,6 +230,7 @@ const ContactsContainer = ({ location, history }) => {
             contacts={formattedContacts}
             contactGroupsMap={contactGroupsMap}
             user={user}
+            userSettings={userSettings}
             userKeysList={userKeysList}
             loadingUserKeys={loadingUserKeys}
             onCheck={handleCheck}
@@ -286,6 +297,7 @@ const ContactsContainer = ({ location, history }) => {
                         onCheck={handleCheckAllFiltered}
                         onDelete={handleDelete}
                         simplified={!!contactID && !isDesktop}
+                        onMerge={() => handleMerge(false)}
                     />
                     <div className={`main-area--withToolbar${noHeader} no-scroll flex flex-nowrap`}>
                         {isLoading ? (

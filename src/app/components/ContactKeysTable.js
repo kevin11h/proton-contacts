@@ -9,19 +9,21 @@ import { dateLocale } from 'proton-shared/lib/i18n';
 import downloadFile from 'proton-shared/lib/helpers/downloadFile';
 import { describe } from 'proton-shared/lib/keys/keysAlgorithm';
 
-import KeyWarningIcon from './KeyWarningIcon';
+import KeyWarningIcon from 'react-components/components/icon/KeyWarningIcon';
 
 const ContactKeysTable = ({ model, setModel }) => {
     const [keys, setKeys] = useState([]);
     const { isNarrow, isTinyMobile } = useActiveBreakpoint();
 
-    const totalApiKeys = model.keys.api.length;
+    const totalApiKeys = model.publicKeys.apiKeys.length;
 
     /**
-     * Extract keys info from model.keys to define table body
+     * Extract keys info from model.publicKeys to define table body
      */
     const parse = async () => {
-        const allKeys = model.isPGPInternal ? [...model.keys.api] : [...model.keys.api, ...model.keys.pinned];
+        const allKeys = model.isPGPInternal
+            ? [...model.publicKeys.apiKeys]
+            : [...model.publicKeys.apiKeys, ...model.publicKeys.pinnedKeys];
         const uniqueKeys = uniqueBy(allKeys, (publicKey) => publicKey.getFingerprint());
         const parsedKeys = await Promise.all(
             uniqueKeys.map(async (publicKey, index) => {
@@ -78,7 +80,7 @@ const ContactKeysTable = ({ model, setModel }) => {
 
     useEffect(() => {
         parse();
-    }, [model.keys, model.trustedFingerprints, model.encrypt]);
+    }, [model.publicKeys, model.trustedFingerprints, model.encrypt]);
 
     return (
         <Table className="pm-simple-table--has-actions">
@@ -131,21 +133,23 @@ const ContactKeysTable = ({ model, setModel }) => {
                             canBePrimary && {
                                 text: c('Action').t`Use for sending`,
                                 onClick() {
-                                    const apiIndex = model.keys.api.findIndex(
+                                    const apiKeyIndex = model.publicKeys.apiKeys.findIndex(
                                         (key) => key.getFingerprint() === fingerprint
                                     );
-                                    const pinnedIndex = model.keys.pinned.findIndex(
+                                    const pinnedKeyIndex = model.publicKeys.pinnedKeys.findIndex(
                                         (key) => key.getFingerprint() === fingerprint
                                     );
                                     const reOrderedApiKeys =
-                                        apiIndex !== -1 ? move(model.keys.api, apiIndex, 0) : model.keys.api;
+                                        apiKeyIndex !== -1
+                                            ? move(model.publicKeys.apiKeys, apiKeyIndex, 0)
+                                            : model.publicKeys.apiKeys;
                                     const reOrderedPinnedKeys =
-                                        pinnedIndex !== -1
-                                            ? move(model.keys.pinned, pinnedIndex, 0)
-                                            : model.keys.pinned;
+                                        pinnedKeyIndex !== -1
+                                            ? move(model.publicKeys.pinnedKeys, pinnedKeyIndex, 0)
+                                            : model.publicKeys.pinnedKeys;
                                     setModel({
                                         ...model,
-                                        keys: { api: reOrderedApiKeys, pinned: reOrderedPinnedKeys }
+                                        publicKeys: { apiKeys: reOrderedApiKeys, pinnedKeys: reOrderedPinnedKeys }
                                     });
                                 }
                             },
@@ -179,9 +183,9 @@ const ContactKeysTable = ({ model, setModel }) => {
                                         trustedFingerprints,
                                         expiredFingerprints,
                                         revokedFingerprints,
-                                        keys: {
-                                            ...model.keys,
-                                            pinned: model.keys.pinned.filter(
+                                        publicKeys: {
+                                            ...model.publicKeys,
+                                            pinnedKeys: model.publicKeys.pinnedKeys.filter(
                                                 (publicKey) => publicKey.getFingerprint() !== fingerprint
                                             )
                                         }
@@ -194,7 +198,8 @@ const ContactKeysTable = ({ model, setModel }) => {
                                 <KeyWarningIcon
                                     className="mr0-5 flex-item-noshrink"
                                     publicKey={publicKey}
-                                    email={model.email}
+                                    emailAddress={model.emailAddress}
+                                    isInternal={model.isPGPInternal}
                                 />
                                 <span className="flex-item-fluid ellipsis">{fingerprint}</span>
                             </div>,

@@ -62,7 +62,7 @@ const ContactGroupModal = ({ contactGroupID, ...rest }) => {
     const { call } = useEventManager();
     const api = useApi();
     const { createNotification } = useNotifications();
-    const [contactGroups] = useContactGroups();
+    const [contactGroups = []] = useContactGroups();
     const [contactEmails] = useContactEmails();
 
     const contactGroup = contactGroupID && contactGroups.find(({ ID }) => ID === contactGroupID);
@@ -81,7 +81,7 @@ const ContactGroupModal = ({ contactGroupID, ...rest }) => {
         .map(({ ID, Email, Name }) => ({ text: Email === Name ? `<${Email}>` : `${Name} <${Email}>`, value: ID }));
 
     const handleChangeName = ({ target }) => setModel({ ...model, name: target.value });
-    const handleChangeColor = (color) => () => setModel({ ...model, color });
+    const handleChangeColor = (color) => setModel({ ...model, color });
     const handleChangeEmail = ({ target }) => setModel({ ...model, contactEmailID: target.value });
 
     const handleAddEmail = () => {
