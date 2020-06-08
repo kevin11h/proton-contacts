@@ -6,7 +6,7 @@ import { useEventManager, FormModal, ResetButton, PrimaryButton } from 'react-co
 import MergeModalContent from './MergeModalContent';
 import MergingModalContent from './MergingModalContent';
 
-const MergeModal = ({ contacts, contactID, userKeysList, hasPaidMail, ...rest }) => {
+const MergeModal = ({ contacts, contactID, userKeysList, hasPaidMail, onMerged, ...rest }) => {
     const { call } = useEventManager();
 
     const [isMerging, setIsMerging] = useState(false);
@@ -28,6 +28,7 @@ const MergeModal = ({ contacts, contactID, userKeysList, hasPaidMail, ...rest })
     useEffect(() => {
         // close the modal if all contacts have been merged from preview
         if (!orderedContacts.flat().length) {
+            onMerged?.();
             rest.onClose();
         }
     }, [orderedContacts]);
@@ -114,7 +115,10 @@ const MergeModal = ({ contacts, contactID, userKeysList, hasPaidMail, ...rest })
             ),
             close,
             submit,
-            onSubmit: rest.onClose,
+            onSubmit: () => {
+                onMerged?.();
+                rest.onClose();
+            },
             ...rest
         };
     })();
@@ -126,7 +130,8 @@ MergeModal.propTypes = {
     contacts: PropTypes.arrayOf(PropTypes.array).isRequired,
     contactID: PropTypes.string,
     userKeysList: PropTypes.array.isRequired,
-    hasPaidMail: PropTypes.oneOfType(PropTypes.bool)
+    hasPaidMail: PropTypes.oneOfType(PropTypes.bool),
+    onMerged: PropTypes.func
 };
 
 export default MergeModal;
