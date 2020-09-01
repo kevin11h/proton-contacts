@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
     Sidebar,
-    useUser,
     useToggle,
     useActiveBreakpoint,
     PrivateAppContainer,
@@ -9,23 +8,22 @@ import {
     SidebarList,
     SidebarNav,
     SidebarBackButton,
-    PrivateHeader
+    PrivateHeader,
+    MainLogo
 } from 'react-components';
 import { Route, Switch, Redirect } from 'react-router';
 import { c } from 'ttag';
 import * as H from 'history';
-import isTruthy from 'proton-shared/lib/helpers/isTruthy';
 
+import OverviewPage, { getOverviewPage } from '../pages/SettingsOverviewPage';
 import GeneralPage, { getGeneralSettingsPage } from '../pages/SettingsGeneralPage';
 import SettingsContactGroupsPage, { getContactGroupsPage } from '../pages/SettingsContactGroupsPage';
 import SidebarVersion from '../content/SidebarVersion';
 
 interface Props {
-    history: H.History;
     location: H.Location;
 }
-const SettingsContainer = ({ location, history }: Props) => {
-    const [{ hasPaidMail }] = useUser();
+const SettingsContainer = ({ location }: Props) => {
     const { state: expanded, toggle: onToggleExpand, set: setExpand } = useToggle();
     const { isNarrow } = useActiveBreakpoint();
     const [activeSection, setActiveSection] = useState('');
@@ -34,12 +32,12 @@ const SettingsContainer = ({ location, history }: Props) => {
         setExpand(false);
     }, [location.pathname, location.hash]);
 
-    const base = '/contacts';
-    const goBack = () => history.push(base);
+    const logo = <MainLogo to="/" />;
+    const pages = [getOverviewPage(), getGeneralSettingsPage(), getContactGroupsPage()];
 
     const header = (
         <PrivateHeader
-            url={base}
+            logo={logo}
             title={c('Title').t`Settings`}
             expanded={expanded}
             onToggleExpand={onToggleExpand}
@@ -49,16 +47,16 @@ const SettingsContainer = ({ location, history }: Props) => {
 
     const sidebar = (
         <Sidebar
-            url={base}
+            logo={logo}
             expanded={expanded}
             onToggleExpand={onToggleExpand}
-            primary={<SidebarBackButton onClick={goBack}>{c('Action').t`Back to Contacts`}</SidebarBackButton>}
+            primary={<SidebarBackButton to="/">{c('Action').t`Back to Contacts`}</SidebarBackButton>}
             version={<SidebarVersion />}
         >
             <SidebarNav>
                 <SidebarList>
                     <SidebarListItemsWithSubsections
-                        list={[getGeneralSettingsPage(), hasPaidMail && getContactGroupsPage()].filter(isTruthy)}
+                        list={pages}
                         pathname={location.pathname}
                         activeSection={activeSection}
                     />
@@ -71,18 +69,24 @@ const SettingsContainer = ({ location, history }: Props) => {
         <PrivateAppContainer header={header} sidebar={sidebar}>
             <Switch>
                 <Route
-                    path={`${base}/settings/general`}
+                    path="/settings/overview"
+                    render={() => {
+                        return <OverviewPage />;
+                    }}
+                />
+                <Route
+                    path="/settings/general"
                     render={({ location }) => {
                         return <GeneralPage location={location} setActiveSection={setActiveSection} />;
                     }}
                 />
                 <Route
-                    path={`${base}/settings/groups`}
+                    path="/settings/groups"
                     render={({ location }) => {
                         return <SettingsContactGroupsPage location={location} setActiveSection={setActiveSection} />;
                     }}
                 />
-                <Redirect to={`${base}/settings/general`} />
+                <Redirect to="/settings/overview" />
             </Switch>
         </PrivateAppContainer>
     );

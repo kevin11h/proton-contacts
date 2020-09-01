@@ -13,7 +13,7 @@ import {
 } from 'react-components';
 import { c } from 'ttag';
 
-import ImportModal from '../components/import/ImportModal';
+import ImportModal from './import/ImportModal';
 import ExportModal from '../components/ExportModal';
 
 const ContactToolbar = ({
@@ -43,7 +43,7 @@ const ContactToolbar = ({
     if (simplified) {
         return (
             <Toolbar>
-                <ToolbarLink to="/contacts" icon="arrow-left" />
+                <ToolbarLink to="/" icon="arrow-left" />
             </Toolbar>
         );
     }
@@ -101,7 +101,7 @@ const ContactToolbar = ({
                         title={c('Action').t`Import`}
                         className="toolbar-button"
                         onClick={() => {
-                            createModal(<ImportModal userKeysList={userKeysList} />);
+                            createModal(<ImportModal />);
                         }}
                     />
                     <ToolbarButton

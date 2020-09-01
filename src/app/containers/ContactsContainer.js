@@ -25,7 +25,9 @@ import {
     ContactModal,
     Searchbox,
     SearchDropdown,
-    Icon
+    Icon,
+    SettingsButton,
+    MainLogo
 } from 'react-components';
 import { normalize } from 'proton-shared/lib/helpers/string';
 import { toMap } from 'proton-shared/lib/helpers/object';
@@ -56,7 +58,7 @@ const ContactsContainer = ({ location, history }) => {
     const [checkedContacts, setCheckedContacts] = useState(Object.create(null));
 
     const contactID = useMemo(() => {
-        const [, contactID] = location.pathname.split('/contacts/');
+        const [, contactID] = location.pathname.split('/');
         return contactID;
     }, [location]);
 
@@ -177,14 +179,14 @@ const ContactsContainer = ({ location, history }) => {
     const onDelete = () => {
         const deleteAll = activeIDs.length === contacts.length;
         if (deleteAll) {
-            history.replace({ ...location, state: { ignoreClose: true }, pathname: '/contacts' });
+            history.replace({ ...location, state: { ignoreClose: true }, pathname: '/' });
             return setCheckedContacts(Object.create(null));
         }
         if (activeIDs.length === filteredContacts.length) {
             handleClearSearch();
         }
         if (contactID && activeIDs.includes(contactID)) {
-            history.replace({ ...location, state: { ignoreClose: true }, pathname: '/contacts' });
+            history.replace({ ...location, state: { ignoreClose: true }, pathname: '/' });
         }
         handleCheck(filteredCheckedIDs, false);
     };
@@ -206,10 +208,10 @@ const ContactsContainer = ({ location, history }) => {
             />
         );
     };
-    const handleImport = () => createModal(<ImportModal userKeysList={userKeysList} />);
+    const handleImport = () => createModal(<ImportModal />);
     const handleExport = (contactGroupID) =>
         createModal(<ExportModal contactGroupID={contactGroupID} userKeysList={userKeysList} />);
-    const handleGroups = () => history.replace('/contacts/settings/groups');
+    const handleGroups = () => history.replace('/settings/groups');
 
     const isLoading =
         loadingContactEmails ||
@@ -244,7 +246,6 @@ const ContactsContainer = ({ location, history }) => {
             contactGroupsMap={contactGroupsMap}
             user={user}
             userSettings={userSettings}
-            userKeysList={userKeysList}
             loadingUserKeys={loadingUserKeys}
             onCheck={handleCheck}
             onClearSearch={handleClearSearch}
@@ -275,14 +276,13 @@ const ContactsContainer = ({ location, history }) => {
 
     const title = search === '' ? c('Title').t`Contacts` : c('Title').t`Search`;
 
-    useAppTitle(title, 'ProtonContacts');
+    useAppTitle(title);
 
-    const base = '/contacts';
-
+    const logo = <MainLogo to="/" />;
     const header = (
         <PrivateHeader
-            url={base}
-            settingsUrl={`${base}/settings`}
+            logo={logo}
+            settingsButton={<SettingsButton to="/settings" />}
             title={title}
             expanded={expanded}
             onToggleExpand={onToggleExpand}
@@ -313,6 +313,7 @@ const ContactsContainer = ({ location, history }) => {
 
     const sidebar = (
         <ContactsSidebar
+            logo={logo}
             history={history}
             user={user}
             expanded={expanded}

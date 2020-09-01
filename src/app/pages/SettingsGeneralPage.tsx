@@ -6,7 +6,7 @@ import ContactsSection from '../components/ContactsSection';
 
 export const getGeneralSettingsPage = () => {
     return {
-        to: '/contacts/settings/general',
+        to: '/settings/general',
         icon: 'settings-singular',
         text: c('Link').t`General`,
         subsections: [
@@ -24,7 +24,6 @@ const SettingsGeneralPage = ({ setActiveSection, location }: SettingsPropsShared
         <PrivateMainSettingsArea
             title={text}
             location={location}
-            appName="ProtonContacts"
             setActiveSection={setActiveSection}
             subsections={subsections}
         >

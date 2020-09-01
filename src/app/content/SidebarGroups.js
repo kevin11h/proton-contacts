@@ -17,7 +17,7 @@ const SidebarGroups = ({ displayGroups, onToggle, hasPaidMail, contactGroups, hi
         if (!hasPaidMail) {
             return createModal(<ContactUpgradeModal />);
         }
-        history.push('/contacts/settings/groups');
+        history.push('/settings/groups');
     };
 
     return (
@@ -32,7 +32,7 @@ const SidebarGroups = ({ displayGroups, onToggle, hasPaidMail, contactGroups, hi
                         onClick={onClickSettingsIcon}
                         title={c('Info').t`Manage your contact groups`}
                         icon="settings-singular"
-                        info={c('Link').t`Groups`}
+                        info={c('Link').t`Manage your contact groups`}
                     />
                 }
             />
@@ -46,7 +46,7 @@ const SidebarGroups = ({ displayGroups, onToggle, hasPaidMail, contactGroups, hi
                             icon="circle"
                             iconColor={Color}
                             iconSize={12}
-                            to={`/contacts?contactGroupID=${ID}`}
+                            to={`/?contactGroupID=${ID}`}
                             isActive={(match, location) => {
                                 const params = new URLSearchParams(location.search);
                                 return params.get('contactGroupID') === ID;
